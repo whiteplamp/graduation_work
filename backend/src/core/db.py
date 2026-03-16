@@ -1,14 +1,13 @@
 from peewee import Model, PostgresqlDatabase
 
-from src.core.config import settings
-
+from src.core.config import DB_NAME, DB_USER, DB_HOST, DB_PORT, DB_PASS
 
 database = PostgresqlDatabase(
-    settings.db_name,
-    user=settings.db_user,
-    password=settings.db_password,
-    host=settings.db_host,
-    port=settings.db_port,
+    DB_NAME,
+    user=DB_USER,
+    password=DB_PASS,
+    host=DB_HOST,
+    port=DB_PORT,
 )
 
 

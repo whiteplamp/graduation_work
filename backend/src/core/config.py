@@ -1,17 +1,15 @@
 import os
 
-from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+
+from pydantic import BaseModel
+load_dotenv()
 
 
-class Settings(BaseSettings):
+class Settings(BaseModel):
     app_name: str = "Catalog Backend"
     debug: bool = True
     access_token_expire_minutes: int = 60 * 24
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
 
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
