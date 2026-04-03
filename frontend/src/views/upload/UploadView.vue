@@ -381,19 +381,33 @@ function onDrop(event) {
 }
 
 async function upload() {
-  if (!file.value) return;
-  uploading.value = true;
-  try {
-    const { jobId, preview } = await uploadService.uploadFile(file.value, mode.value);
-    uploadJobId.value = jobId;
-    previewColumns.value = preview.columns;
-    previewRows.value = preview.rows;
-    await loadStatus();
-  } catch (error) {
-    console.error(error);
-  } finally {
-    uploading.value = false;
-  }
+    if (!file.value) return
+
+    uploading.value = true
+    let uploadResult = null
+
+    try {
+        const result = await uploadService.uploadFile(file.value)
+        uploadResult = result
+
+        // Если есть ошибки, показываем их
+        if (result.errors && result.errors.length) {
+            console.warn('Ошибки при загрузке:', result.errors)
+        }
+
+    } catch (error) {
+        console.error('Upload error:', error)
+        uploadResult = {
+            success: false,
+            message: error.response?.data?.detail || 'Ошибка при загрузке файла',
+            total_rows: 0,
+            created: 0,
+            updated: 0,
+            errors: [error.response?.data?.detail || error.message]
+        }
+    } finally {
+        uploading.value = false
+    }
 }
 
 async function loadStatus() {

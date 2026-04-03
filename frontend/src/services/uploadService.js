@@ -10,7 +10,7 @@ export const uploadService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
-    return data;
+    return data; // Возвращает { success, total_rows, created, updated, errors, message }
   },
 
   async getStatus(jobId) {

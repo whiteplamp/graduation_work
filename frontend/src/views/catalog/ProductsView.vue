@@ -150,7 +150,7 @@
                 {{ product.name }}
               </td>
               <td v-if="visibleColumns.category" class="px-3 py-2 text-xs text-slate-600">
-                {{ product.categoryName || '—' }}
+                {{ product.category_name || '—' }}
               </td>
               <td v-if="visibleColumns.price" class="px-3 py-2 text-xs text-slate-800">
                 {{ product.price.toLocaleString() }} {{ currency }}
@@ -159,7 +159,7 @@
                 {{ product.stock }}
               </td>
               <td v-if="visibleColumns.supplier" class="px-3 py-2 text-xs text-slate-600">
-                {{ product.supplierName || '—' }}
+                {{ product.supplier_name || '—' }}
               </td>
               <td class="px-3 py-2 text-right">
                 <button
@@ -267,7 +267,7 @@ const filters = reactive({
 
 const pagination = reactive({
   page: route.query.page ? Number(route.query.page) : 1,
-  pageSize: 20,
+  pageSize: 10,
   total: 0,
 });
 
