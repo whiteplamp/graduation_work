@@ -14,7 +14,9 @@ def authenticate_user(_login: str, password: str) -> User | None:
         user = User.get(User.email == _login)
     except DoesNotExist:
         return None
-    if not verify_password(password, user.hashed_password):
+
+    print(user.hashed_password)
+    if not verify_password(user.hashed_password, password):
         return None
     return user
 

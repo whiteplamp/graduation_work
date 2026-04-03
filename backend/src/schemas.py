@@ -94,8 +94,12 @@ class UploadPreview(BaseModel):
 
 
 class UploadStartResponse(BaseModel):
-    jobId: int
-    preview: UploadPreview
+    success: bool
+    total_rows: int
+    created: int
+    updated: int
+    errors: Optional[List[str]] = None
+    message: str
 
 
 class UploadStatus(BaseModel):

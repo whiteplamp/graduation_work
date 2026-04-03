@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from peewee import fn
+from peewee import fn, JOIN
 
 from src.core.db import database
 from src.models import Category, Product, Supplier
@@ -10,28 +10,35 @@ router = APIRouter(prefix="/products", tags=["products"])
 
 @router.get("", response_model=PaginatedProducts)
 def list_products(
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=200),
-    search: str | None = None,
-    category_id: int | None = None,
-    supplier_id: int | None = None,
-    price_from: float | None = None,
-    price_to: float | None = None,
-    stock_from: int | None = None,
-    stock_to: int | None = None,
+        page: int = Query(1, ge=1),
+        page_size: int = Query(10, ge=1, le=200),
+        search: str | None = None,
+        category_id: int | None = None,
+        supplier_id: int | None = None,
+        price_from: float | None = None,
+        price_to: float | None = None,
+        stock_from: int | None = None,
+        stock_to: int | None = None,
 ):
     with database.connection_context():
         query = (
             Product.select(
-                Product,
+                Product.id,
+                Product.sku,
+                Product.name,
+                Product.price,
+                Product.stock,
+                Product.category_id,
+                Product.supplier_id,
                 Category.name.alias("category_name"),
                 Supplier.name.alias("supplier_name"),
             )
-            .join(Category, fn.LEFT_OUTER, on=(Product.category == Category.id))
+            .join(Category, JOIN.LEFT_OUTER, on=(Product.category == Category.id))
             .switch(Product)
-            .join(Supplier, fn.LEFT_OUTER, on=(Product.supplier == Supplier.id))
+            .join(Supplier, JOIN.LEFT_OUTER, on=(Product.supplier == Supplier.id))
         )
 
+        # Применяем фильтры
         if search:
             query = query.where(
                 (Product.name.contains(search)) | (Product.sku.contains(search))
@@ -49,25 +56,29 @@ def list_products(
         if stock_to is not None:
             query = query.where(Product.stock <= stock_to)
 
+        # Считаем общее количество
         total = query.count()
-        items: list[ProductOut] = []
-        for p in query.order_by(Product.id).paginate(page, page_size):
+
+        # Пагинация и получение словарей
+        items = []
+        for row in query.order_by(Product.id).paginate(page, page_size).dicts():
+            print("INFORAMTION_____")
+            print(row)
             items.append(
                 ProductOut(
-                    id=p.id,
-                    sku=p.sku,
-                    name=p.name,
-                    category_id=p.category_id,
-                    supplier_id=p.supplier_id,
-                    price=float(p.price),
-                    stock=p.stock,
-                    category_name=getattr(p, "category_name", None),
-                    supplier_name=getattr(p, "supplier_name", None),
+                    id=row['id'],
+                    sku=row['sku'],
+                    name=row['name'],
+                    category_id=row['category'],
+                    supplier_id=row['supplier'],
+                    price=float(row['price']),
+                    stock=row['stock'],
+                    category_name=row.get('category_name'),
+                    supplier_name=row.get('supplier_name'),
                 )
             )
 
         return PaginatedProducts(items=items, total=total)
-
 
 @router.post("", response_model=ProductOut)
 def create_product(data: ProductCreate):

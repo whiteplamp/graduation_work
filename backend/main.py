@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from src.core.db import database
 from src.models import (
@@ -53,5 +55,25 @@ app.include_router(settings.router)
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.middleware("http")
+async def log_errors_middleware(request: Request, call_next):
+    try:
+        response = await call_next(request)
+        return response
+    except Exception as e:
+        # Логируем ошибку с полной информацией о запросе
+        print(f"\n🔴 ОШИБКА ПРИ ЗАПРОСЕ:")
+        print(f"   Метод: {request.method}")
+        print(f"   Путь: {request.url.path}")
+        print(f"   Параметры: {dict(request.query_params)}")
+        print(f"   Ошибка: {str(e)}")
+
+        # Возвращаем ответ об ошибке
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
 
 
